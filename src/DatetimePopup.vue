@@ -26,9 +26,12 @@
           @change="onChangeTime"
           :hour="hour"
           :minute="minute"
+          :second="second"
           :use12-hour="use12Hour"
+          :use-seconds="useSeconds"
           :hour-step="hourStep"
           :minute-step="minuteStep"
+          :second-step="secondStep"
           :min-time="minTime"
           :max-time="maxTime"></datetime-time-picker>
     </div>
@@ -79,11 +82,19 @@ export default {
       type: Boolean,
       default: false
     },
+    useSeconds: {
+      type: Boolean,
+      default: false
+    },
     hourStep: {
       type: Number,
       default: 1
     },
     minuteStep: {
+      type: Number,
+      default: 1
+    },
+    secondStep: {
       type: Number,
       default: 1
     },
@@ -140,10 +151,16 @@ export default {
     minute () {
       return this.newDatetime.minute
     },
+    second () {
+      return this.newDatetime.second
+    },
     dateFormatted () {
       return this.newDatetime.toLocaleString({
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit'
       })
     },
     minDatetimeUTC () {
@@ -203,7 +220,7 @@ export default {
         this.nextStep()
       }
     },
-    onChangeTime ({ hour, minute, suffixTouched }) {
+    onChangeTime ({ hour, minute, second, suffixTouched }) {
       if (suffixTouched) {
         this.timePartsTouched['suffix'] = true
       }
@@ -218,7 +235,15 @@ export default {
         this.timePartsTouched['minute'] = true
       }
 
+      if (Number.isInteger(second)) {
+        this.newDatetime = this.newDatetime.set({ second })
+        this.timePartsTouched['second'] = true
+      }
+
       const goNext = this.auto && this.timePartsTouched['hour'] && this.timePartsTouched['minute'] && (
+        this.timePartsTouched['second'] ||
+        !this.useSeconds
+      ) && (
         this.timePartsTouched['suffix'] ||
         !this.use12Hour
       )

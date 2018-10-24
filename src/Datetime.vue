@@ -21,8 +21,10 @@
           :datetime="popupDate"
           :phrases="phrases"
           :use12-hour="use12Hour"
+          :use-seconds="useSeconds"
           :hour-step="hourStep"
           :minute-step="minuteStep"
+          :second-step="secondStep"
           :min-datetime="popupMinDatetime"
           :max-datetime="popupMaxDatetime"
           @confirm="confirm"
@@ -87,11 +89,19 @@ export default {
       type: Boolean,
       default: false
     },
+    useSeconds: {
+      type: Boolean,
+      default: false
+    },
     hourStep: {
       type: Number,
       default: 1
     },
     minuteStep: {
+      type: Number,
+      default: 1
+    },
+    secondStep: {
       type: Number,
       default: 1
     },
@@ -146,7 +156,7 @@ export default {
             break
           case 'datetime':
           case 'default':
-            format = DateTime.DATETIME_MED
+            format = this.useSeconds ? DateTime.DATETIME_MED_WITH_SECONDS : DateTime.DATETIME_MED
             break
         }
       }
@@ -196,6 +206,10 @@ export default {
       this.close()
     },
     newPopupDatetime () {
+      const value = { milliseconds: 0 }
+      if (!this.useSeconds) {
+        value.seconds = 0
+      }
       let datetime = DateTime.utc().setZone(this.zone).set({ seconds: 0, milliseconds: 0 })
 
       if (this.popupMinDatetime && datetime < this.popupMinDatetime) {
@@ -213,7 +227,7 @@ export default {
       const roundedMinute = Math.round(datetime.minute / this.minuteStep) * this.minuteStep
 
       if (roundedMinute === 60) {
-        return datetime.plus({ hours: 1 }).set({ minute: 0 })
+        return datetime.plus({ hours: 1 }).set({ minute: 0, second: 0 })
       }
 
       return datetime.set({ minute: roundedMinute })
